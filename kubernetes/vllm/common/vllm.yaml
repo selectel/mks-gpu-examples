@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: vllm-app-common
+  name: vllm
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vllm-app-common
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: vllm-app-common
+    spec:
+      containers:
+      - command:
+        - python3
+        - -m
+        - vllm.entrypoints.openai.api_server
+        - --model
+        - gpt2
+        #- bigcode/starcoder2-3b
+        image: repo.mlops.selcloud.ru/mldp/vllm-openapi:v0.5.0-zstd
+        name: vllm-openai
+        ports:
+        - containerPort: 8000
+          protocol: TCP
+        resources:
+          limits:
+            nvidia.com/gpu: "1"
+        volumeMounts:
+        - mountPath: /root/.cache/huggingface
+          name: cache-volume
+
+        readinessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: /health
+            port: 8000
+            scheme: HTTP
+          initialDelaySeconds: 40
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 1
+        livenessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: /health
+            port: 8000
+            scheme: HTTP
+          initialDelaySeconds: 40
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 1
+      volumes:
+      - emptyDir: {}
+        name: cache-volume

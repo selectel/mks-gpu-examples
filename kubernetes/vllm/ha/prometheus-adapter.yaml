@@ -1,0 +1,17 @@
+namespaceOverride: default
+prometheus:
+  url: http://prometheus-stack-kube-prom-prometheus
+  port: 9090
+rules:
+  custom:
+    - seriesQuery: 'vllm:e2e_request_latency_seconds_sum{namespace!="",pod!="",model_name="gpt2"}'
+      resources:
+        overrides:
+          namespace:
+            resource: "namespace"
+          pod:
+            resource: "pod"
+      name:
+        matches: "vllm:e2e_request_latency_seconds_sum"
+        as: "vllm_request_latency_seconds"
+      metricsQuery: 'rate(vllm:e2e_request_latency_seconds_sum{<<.LabelMatchers>>}[1m])/rate(vllm:e2e_request_latency_seconds_count{<<.LabelMatchers>>}[1m])'
