@@ -29,7 +29,7 @@ variable "volume_gb" {
   default = "100"
 }
 variable "gpu_ng_flavor" {
-  default = "3031"
+  default = "3041" # A30 3048, A100 3041, TeslaT4 3031
 }
 # Openstack provider vars
 variable "os_auth_url" {

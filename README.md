@@ -3,6 +3,23 @@
 А также примеры настройки GPU нод с помощью GPU-operator
 
 # Подготовка инфраструктуры
+## Добавление зеркала terraform
+если вы хотите использовать зеркало, создайте отдельный конфигурационный файл ~/.terraformrc и добавьте в него блок:
+
+```
+provider_installation {
+  network_mirror {
+    url = "https://mirror.selectel.ru/3rd-party/terraform-registry/"
+    include = ["registry.terraform.io/*/*"]
+  }
+  direct {
+    exclude = ["registry.terraform.io/*/*"]
+  }
+}
+```
+Подробнее о настройках зеркал в инструкции [CLI Configuration File](https://developer.hashicorp.com/terraform/cli/config/config-file) документации HashiCorp.
+
+
 ## Создание кластера с помощью terraform
 
 Если вы хотите хранить terraform state в selectel s3, то нужно создать `backend.tfvars` и указать там
@@ -35,9 +52,28 @@ terraform apply
 Установите prometheus stack и gpu operator с нужными values
 ```
 cd kubernetes
-helm install prometheus-stack prometheus-community/kube-prometheus-stack -f prometheus-stack/values.yaml
-helm install gpu-operator -n gpu-operator --create-namespace nvidia/gpu-operator -f gpu-operator/values.yaml
+helm upgrade --install prometheus-stack prometheus-community/kube-prometheus-stack -f prometheus-stack/values.yaml
+helm upgrade --install gpu-operator -n gpu-operator --create-namespace nvidia/gpu-operator -f gpu-operator/values.yaml
 ```
+
+### Включение MIG
+Если вы используете ноды с GPU архитектурой Ampere и выше, после установки GPU оператор вы можете включить поддержку MIG
+В values gpu operator добавим следующие поля
+```yaml
+mig:
+  strategy: single
+
+migManager:
+  enabled: true
+  config:
+    name: "default-mig-parted-config"
+    default: "all-disabled"
+```
+Далее после установки нового релиза вы можете залейблить ноду, где требуется конфигурация MIG
+```bash
+kubectl label node <node-name> nvidia.com/mig.config=all-2g.10gb --overwrite
+```
+
 # Запуск инференса ChatGPT2 в кластере MKS
 ## Запуск ChatGPT2 в кластере MKS
 Установим инференс с chatpgt2
@@ -51,20 +87,20 @@ kubectl port-forward svc/vllm-openai-svc 8000:8000 --address='0.0.0.0'
 ## Как настроить автоскейлинг инференса по кастомным метрикам
 Поставим prometheus-adapter с нужной кастомной метрикой
 ```
-helm upgrade  --install prometheus-adapter prometheus-community/prometheus-adapter -f vllm/prometheus-adapter.yaml
+helm upgrade --install prometheus-adapter prometheus-community/prometheus-adapter -f vllm/prometheus-adapter.yaml
 ```
-установим vllm с loadbalancer
+установим vllm с loadbalancer и публичным ip адресом
 ```bash
 kubectl apply -f ha
 ```
-полезная информация про мониторинг vllm [здесь](https://github.com/vllm-project/vllm/tree/main/examples/production_monitoring)
+Полезная информация про мониторинг vllm [здесь](https://github.com/vllm-project/vllm/tree/main/examples/production_monitoring)
 Заимпортим в grafana [дашборд](kubernetes/vllm/grafana.json)
 И подадим нагрузку
 ```
 docker run --net host -it -v /tmp:/workspace nvcr.io/nvidia/tritonserver:24.05-py3-sdk
 genai-perf   -m gpt2   --service-kind openai   --endpoint v1/completions   --concurrency 50 --url <loadbalancer_ip>:8000 --endpoint-type completions --num-prompts 100 --random-seed 123 --synthetic-input-tokens-mean 20 --synthetic-input-tokens-stddev 0 --tokenizer hf-internal-testing/llama-tokenizer --measurement-interval 1000 -p 100000
 ```
-нужно менять --concurrency от 50 до 100 при этом p95 задержка будет скакать от 200мс до 400
+Если менять --concurrency от 50 до 100, то при этом average задержка будет варьироваться от 200мс до 400
 
-в файлике artifacts/gpt2-openai-completions-concurrency50/llm_inputs.json хранятся сгенерированные промты
+В файле artifacts/gpt2-openai-completions-concurrency50/llm_inputs.json хранятся сгенерированные промты
 

@@ -7,7 +7,7 @@ spec:
    apiVersion: apps/v1
    kind: Deployment
    name: vllm
- minReplicas: 3
+ minReplicas: 1
  maxReplicas: 3
  metrics:
  - type: Pods
@@ -16,4 +16,4 @@ spec:
        name: vllm_request_latency_seconds
      target:
        type: AverageValue
-       averageValue: 400m
+       averageValue: 200m

@@ -2,7 +2,7 @@ mig:
   strategy: single
 
 driver:
-  enabled: false
+  enabled: true
   nvidiaDriverCRD:
     enabled: false
     deployDefaultCR: true
@@ -15,10 +15,10 @@ driver:
   version: "550.54.15"
 
 toolkit:
-  enabled: false
+  enabled: true
 
 devicePlugin:
-  enabled: false
+  enabled: true
   resources: {}
   # Plugin configuration
   # Use "name" to either point to an existing ConfigMap or to create a new one with a list of configurations(i.e with create=true).

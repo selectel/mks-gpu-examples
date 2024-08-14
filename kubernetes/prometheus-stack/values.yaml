@@ -5,23 +5,6 @@ prometheus:
     ruleSelectorNilUsesHelmValues: false
     serviceMonitorSelectorNilUsesHelmValues: false
 grafana:
-  dashboardProviders:
-    dashboardproviders.yaml:
-      apiVersion: 1
-      providers:
-      - name: 'default'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/default
-  dashboards:
-    default:
-      gpu-dcgm:
-        url: https://424531.selcdn.ru/icons/grafana_dashboards/gpu_dcgm.json
-        datasource: Prometheus
   grafana.ini:
     analytics:
       check_for_updates: true

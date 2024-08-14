@@ -10,8 +10,6 @@ resource "selectel_mks_cluster_v1" "ha_cluster" {
   kube_version = data.selectel_mks_kube_versions_v1.versions.latest_version
 }
 
-
-
 resource "selectel_mks_nodegroup_v1" "nodegroup_1" {
   cluster_id        = selectel_mks_cluster_v1.ha_cluster.id
   project_id        = var.project_id

@@ -6,7 +6,7 @@ metadata:
   name: vllm
   namespace: default
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: vllm-app-common
@@ -60,3 +60,5 @@ spec:
       volumes:
       - emptyDir: {}
         name: cache-volume
+#      nodeSelector:
+#        nvidia.com/mig.config: all-2g.10gb
