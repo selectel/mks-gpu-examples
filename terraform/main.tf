@@ -1,6 +1,6 @@
 data "selectel_mks_kube_versions_v1" "versions" {
   project_id = var.project_id
-  region     = "ru-3"
+  region     = var.region
 }
 
 resource "selectel_mks_cluster_v1" "ha_cluster" {
@@ -10,7 +10,21 @@ resource "selectel_mks_cluster_v1" "ha_cluster" {
   kube_version = data.selectel_mks_kube_versions_v1.versions.latest_version
 }
 
-resource "selectel_mks_nodegroup_v1" "nodegroup_1" {
+resource "selectel_mks_nodegroup_v1" "nodegroup_system" {
+  cluster_id        = selectel_mks_cluster_v1.ha_cluster.id
+  project_id        = var.project_id
+  region            = var.region
+  availability_zone = var.availability_zone
+  nodes_count       = 1
+  volume_type       = var.volume_type
+  volume_gb         = 40
+  cpus              = 2
+  ram_mb            = 4096
+
+  install_nvidia_device_plugin = false
+}
+
+resource "selectel_mks_nodegroup_v1" "nodegroup_gpu" {
   cluster_id        = selectel_mks_cluster_v1.ha_cluster.id
   project_id        = var.project_id
   region            = var.region

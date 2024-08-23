@@ -95,7 +95,7 @@ kubectl apply -f ha
 ```
 Полезная информация про мониторинг vllm [здесь](https://github.com/vllm-project/vllm/tree/main/examples/production_monitoring)
 Заимпортим в grafana [дашборд](kubernetes/vllm/grafana.json)
-И подадим нагрузку
+И подадим нагрузку с помощью [genai perf](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/client/src/c%2B%2B/perf_analyzer/genai-perf/README.html)
 ```
 docker run --net host -it -v /tmp:/workspace nvcr.io/nvidia/tritonserver:24.05-py3-sdk
 genai-perf   -m gpt2   --service-kind openai   --endpoint v1/completions   --concurrency 50 --url <loadbalancer_ip>:8000 --endpoint-type completions --num-prompts 100 --random-seed 123 --synthetic-input-tokens-mean 20 --synthetic-input-tokens-stddev 0 --tokenizer hf-internal-testing/llama-tokenizer --measurement-interval 1000 -p 100000
