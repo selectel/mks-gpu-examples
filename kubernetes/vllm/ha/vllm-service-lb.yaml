@@ -13,4 +13,3 @@ spec:
   selector:
     app: vllm-app
   type: LoadBalancer
-  externalTrafficPolicy: Local
